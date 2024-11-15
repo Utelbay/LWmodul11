@@ -1,0 +1,203 @@
+using System;
+using System.Collections.Generic;
+
+public interface IUserService
+{
+    void RegisterUser(string name, string email);
+    bool Authenticate(string email, string password);
+    void UpdateUserInfo(int userId, string newName, string newEmail);
+}
+
+public interface IProductService
+{
+    void AddProduct(string name, string category, decimal price);
+    List<Product> GetProducts();
+    Product FindProduct(string searchCriteria);
+}
+
+public interface IOrderService
+{
+    Order CreateOrder(int userId, List<Product> products);
+    void TrackOrder(int orderId);
+    void CancelOrder(int orderId);
+}
+
+public interface IPaymentService
+{
+    bool ProcessPayment(int orderId, decimal amount);
+    bool CheckPaymentStatus(int paymentId);
+    void NotifyPaymentSuccess(int orderId);
+}
+
+public interface INotificationService
+{
+    void SendNotification(int userId, string message);
+}
+
+public class UserService : IUserService
+{
+    private List<User> users = new List<User>();
+    public void RegisterUser(string name, string email)
+    {
+        users.Add(new User(name, email));
+        Console.WriteLine($"User {name} registered successfully.");
+    }
+
+    public bool Authenticate(string email, string password)
+    {
+        Console.WriteLine("Authenticating user...");
+        return true;
+    }
+
+    public void UpdateUserInfo(int userId, string newName, string newEmail)
+    {
+        Console.WriteLine($"User {userId} info updated.");
+    }
+}
+
+public class ProductService : IProductService
+{
+    private List<Product> products = new List<Product>();
+    public void AddProduct(string name, string category, decimal price)
+    {
+        products.Add(new Product(name, category, price));
+        Console.WriteLine($"Product {name} added successfully.");
+    }
+
+    public List<Product> GetProducts()
+    {
+        return products;
+    }
+
+    public Product FindProduct(string searchCriteria)
+    {
+        return products.Find(p => p.Name.Contains(searchCriteria));
+    }
+}
+
+public class OrderService : IOrderService
+{
+    private List<Order> orders = new List<Order>();
+    private readonly IProductService productService;
+    private readonly IPaymentService paymentService;
+
+    public OrderService(IProductService productService, IPaymentService paymentService)
+    {
+        this.productService = productService;
+        this.paymentService = paymentService;
+    }
+
+    public Order CreateOrder(int userId, List<Product> products)
+    {
+        var order = new Order(userId, products);
+        orders.Add(order);
+        Console.WriteLine($"Order {order.Id} created for user {userId}.");
+        return order;
+    }
+
+    public void TrackOrder(int orderId)
+    {
+        Console.WriteLine($"Tracking order {orderId}.");
+    }
+
+    public void CancelOrder(int orderId)
+    {
+        Console.WriteLine($"Order {orderId} cancelled.");
+    }
+}
+
+public class PaymentService : IPaymentService
+{
+    public bool ProcessPayment(int orderId, decimal amount)
+    {
+        Console.WriteLine($"Processing payment for order {orderId}.");
+        return true;
+    }
+
+    public bool CheckPaymentStatus(int paymentId)
+    {
+        Console.WriteLine($"Checking status for payment {paymentId}.");
+        return true;
+    }
+
+    public void NotifyPaymentSuccess(int orderId)
+    {
+        Console.WriteLine($"Payment for order {orderId} was successful.");
+    }
+}
+
+public class NotificationService : INotificationService
+{
+    public void SendNotification(int userId, string message)
+    {
+        Console.WriteLine($"Notification sent to user {userId}: {message}");
+    }
+}
+
+public class User
+{
+    public int Id { get; private set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+
+    public User(string name, string email)
+    {
+        Name = name;
+        Email = email;
+    }
+}
+
+public class Product
+{
+    public string Name { get; set; }
+    public string Category { get; set; }
+    public decimal Price { get; set; }
+
+    public Product(string name, string category, decimal price)
+    {
+        Name = name;
+        Category = category;
+        Price = price;
+    }
+}
+
+public class Order
+{
+    private static int nextId = 1;
+    public int Id { get; private set; }
+    public int UserId { get; private set; }
+    public List<Product> Products { get; private set; }
+    public string Status { get; set; }
+
+    public Order(int userId, List<Product> products)
+    {
+        Id = nextId++;
+        UserId = userId;
+        Products = products;
+        Status = "Pending";
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        IUserService userService = new UserService();
+        IProductService productService = new ProductService();
+        IPaymentService paymentService = new PaymentService();
+        IOrderService orderService = new OrderService(productService, paymentService);
+        INotificationService notificationService = new NotificationService();
+
+        userService.RegisterUser("Alice", "alice@example.com");
+
+        productService.AddProduct("Laptop", "Electronics", 1200.00m);
+        productService.AddProduct("Phone", "Electronics", 800.00m);
+
+        var products = productService.GetProducts();
+        var order = orderService.CreateOrder(1, products);
+
+        paymentService.ProcessPayment(order.Id, 2000.00m);
+
+        notificationService.SendNotification(order.UserId, "Your order has been placed successfully.");
+    }
+}
