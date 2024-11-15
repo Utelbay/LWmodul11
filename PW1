@@ -1,0 +1,149 @@
+using System;
+using System.Collections.Generic;
+
+public class Book
+{
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public string ISBN { get; set; }
+    public bool IsAvailable { get; private set; } = true;
+
+    public Book(string title, string author, string isbn)
+    {
+        Title = title;
+        Author = author;
+        ISBN = isbn;
+    }
+
+    public void MarkAsLoaned()
+    {
+        IsAvailable = false;
+    }
+
+    public void MarkAsAvailable()
+    {
+        IsAvailable = true;
+    }
+}
+
+public class Reader
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Email { get; set; }
+
+    public Reader(int id, string name, string email)
+    {
+        Id = id;
+        Name = name;
+        Email = email;
+    }
+
+    public void BorrowBook(Book book)
+    {
+        if (book.IsAvailable)
+        {
+            book.MarkAsLoaned();
+            Console.WriteLine($"{Name} borrowed '{book.Title}'.");
+        }
+        else
+        {
+            Console.WriteLine($"'{book.Title}' is not available.");
+        }
+    }
+
+    public void ReturnBook(Book book)
+    {
+        book.MarkAsAvailable();
+        Console.WriteLine($"{Name} returned '{book.Title}'.");
+    }
+}
+
+public class Librarian
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string Position { get; set; }
+    private List<Book> books = new List<Book>();
+
+    public Librarian(int id, string name, string position)
+    {
+        Id = id;
+        Name = name;
+        Position = position;
+    }
+
+    public void AddBook(Book book)
+    {
+        books.Add(book);
+        Console.WriteLine($"Book '{book.Title}' added to the library.");
+    }
+
+    public void RemoveBook(Book book)
+    {
+        if (books.Remove(book))
+        {
+            Console.WriteLine($"Book '{book.Title}' removed from the library.");
+        }
+        else
+        {
+            Console.WriteLine($"Book '{book.Title}' not found.");
+        }
+    }
+
+    public void DisplayAvailableBooks()
+    {
+        Console.WriteLine("Available Books:");
+        foreach (var book in books)
+        {
+            if (book.IsAvailable)
+                Console.WriteLine($"- {book.Title} by {book.Author}");
+        }
+    }
+}
+
+public class Loan
+{
+    public Book Book { get; private set; }
+    public Reader Reader { get; private set; }
+    public DateTime LoanDate { get; private set; }
+    public DateTime? ReturnDate { get; private set; }
+
+    public Loan(Book book, Reader reader)
+    {
+        Book = book;
+        Reader = reader;
+        LoanDate = DateTime.Now;
+    }
+
+    public void CompleteLoan()
+    {
+        ReturnDate = DateTime.Now;
+        Book.MarkAsAvailable();
+        Console.WriteLine($"Loan completed for book '{Book.Title}' by {Reader.Name}");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Librarian librarian = new Librarian(1, "John", "Senior Librarian");
+
+        Book book1 = new Book("To Kill a Mockingbird", "Harper Lee", "123456789");
+        Book book2 = new Book("1984", "George Orwell", "987654321");
+
+        librarian.AddBook(book1);
+        librarian.AddBook(book2);
+
+        Reader reader = new Reader(1, "Alice", "alice@example.com");
+
+        reader.BorrowBook(book1);
+
+        librarian.DisplayAvailableBooks();
+
+        reader.ReturnBook(book1);
+
+        librarian.DisplayAvailableBooks();
+    }
+}
